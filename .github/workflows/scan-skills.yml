@@ -8,6 +8,14 @@ on:
         required: true
         default: "10"
         type: number
+      fail-mode:
+        description: "Behavior when dangerous skills are found"
+        required: true
+        default: "continue"
+        type: choice
+        options:
+          - continue
+          - stop
 
 jobs:
   scan:
@@ -35,7 +43,7 @@ jobs:
           pipx install git+https://github.com/cisco-ai-defense/skill-scanner.git
 
       - name: Run SkillGuard scan
-        continue-on-error: true
+        continue-on-error: ${{ github.event.inputs.fail-mode == 'continue' }}
         uses: AI-Provenance/skillguard-core@main
         with:
           path: .scan/
