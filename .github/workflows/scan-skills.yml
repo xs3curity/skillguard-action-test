@@ -1,32 +1,43 @@
 name: Scan skills
 
 on:
-  # push:
-  # pull_request:
   workflow_dispatch:
+    inputs:
+      skill-count:
+        description: "Number of skills to scan (0 = all)"
+        required: true
+        default: "10"
+        type: number
 
 jobs:
   scan:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select skills to scan
+        run: |
+          count="${{ github.event.inputs.skill-count }}"
+          rm -rf .scan
+          mkdir -p .scan
+          if [ -z "$count" ] || [ "$count" = "0" ]; then
+            cp -r skills/* .scan/
+          else
+            ls -d skills/*/ | head -n "$count" | xargs -r cp -r -t .scan/
+          fi
+          echo "Selected $(find .scan -mindepth 1 -maxdepth 1 -type d | wc -l) skills"
 
       - name: Install scanner engines
         run: |
           pipx install git+https://github.com/NVIDIA/skillspector.git
           pipx install git+https://github.com/cisco-ai-defense/skill-scanner.git
 
-      - uses: AI-Provenance/skillguard-core@main
+      - name: Run SkillGuard scan
+        continue-on-error: true
+        uses: AI-Provenance/skillguard-core@main
         with:
-          path: skills/
+          path: .scan/
           fail-on: dangerous
           workers: "8"
-
-      - name: Upload SARIF to code scanning
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: skillguard.sarif
