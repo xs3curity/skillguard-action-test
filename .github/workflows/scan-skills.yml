@@ -1,0 +1,32 @@
+name: Scan skills
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install scanner engines
+        run: |
+          pipx install git+https://github.com/NVIDIA/skillspector.git
+          pipx install git+https://github.com/cisco-ai-defense/skill-scanner.git
+
+      - uses: AI-Provenance/skillguard-core@v0.1.2
+        with:
+          path: skills/
+          fail-on: dangerous
+          workers: "8"
+
+      - name: Upload SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: skillguard.sarif
