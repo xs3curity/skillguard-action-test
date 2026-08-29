@@ -60,7 +60,7 @@ jobs:
           workers: "8"
           use-llm: ${{ inputs.use-llm == 'yes' }}
         env:
-          SKILLGUARD_ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ## Opencode Test
           # SKILLGUARD_LLM_API_KEY: ${{ secrets.SKILLGUARD_LLM_API_KEY }}
           # SKILLGUARD_LLM_BASE_URL: ${{ vars.SKILLGUARD_LLM_BASE_URL }}
