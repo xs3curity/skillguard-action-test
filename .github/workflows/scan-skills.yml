@@ -16,6 +16,14 @@ on:
         options:
           - continue
           - stop
+      use-llm:
+        description: "Make use of LLM for analysis"
+        required: true
+        default: "yes"
+        type: choice
+        options:
+          - no
+          - yes
 
 jobs:
   scan:
@@ -49,6 +57,7 @@ jobs:
           path: .scan/
           fail-on: dangerous
           workers: "8"
+          use-llm: ${{ github.event.inputs.use-llm == 'yes' }}
         env:
           SKILLGUARD_LLM_API_KEY: ${{ secrets.SKILLGUARD_LLM_API_KEY }}
           SKILLGUARD_LLM_BASE_URL: ${{ vars.SKILLGUARD_LLM_BASE_URL }}
