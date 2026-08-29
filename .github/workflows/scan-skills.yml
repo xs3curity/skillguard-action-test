@@ -14,8 +14,8 @@ on:
         default: "continue"
         type: choice
         options:
-          - continue
-          - stop
+          - "continue"
+          - "stop"
       use-llm:
         description: "Make use of LLM for analysis"
         required: true
