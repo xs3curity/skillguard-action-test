@@ -22,8 +22,8 @@ on:
         default: "yes"
         type: choice
         options:
-          - no
-          - yes
+          - "no"
+          - "yes"
 
 jobs:
   scan:
