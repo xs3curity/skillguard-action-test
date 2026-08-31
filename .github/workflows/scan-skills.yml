@@ -14,20 +14,29 @@ on:
         default: "continue"
         type: choice
         options:
-          - continue
-          - stop
+          - "continue"
+          - "stop"
+      use-llm:
+        description: "Make use of LLM for analysis"
+        required: true
+        default: "yes"
+        type: choice
+        options:
+          - "no"
+          - "yes"
 
 jobs:
   scan:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
 
       - name: Select skills to scan
         run: |
-          count="${{ github.event.inputs.skill-count }}"
+          count="${{ inputs.skill-count }}"
           rm -rf .scan
           mkdir -p .scan
           if [ -z "$count" ] || [ "$count" = "0" ]; then
@@ -43,9 +52,21 @@ jobs:
           pipx install git+https://github.com/cisco-ai-defense/skill-scanner.git
 
       - name: Run SkillGuard scan
-        continue-on-error: ${{ github.event.inputs.fail-mode == 'continue' }}
+        continue-on-error: ${{ inputs.fail-mode == 'continue' && true || false }}
         uses: AI-Provenance/skillguard-core@main
         with:
           path: .scan/
           fail-on: dangerous
           workers: "8"
+          use-llm: ${{ inputs.use-llm == 'yes' && true || false}}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ## Opencode Test
+          # SKILLGUARD_LLM_API_KEY: ${{ secrets.SKILLGUARD_LLM_API_KEY }}
+          # SKILLGUARD_LLM_BASE_URL: ${{ vars.SKILLGUARD_LLM_BASE_URL }}
+          
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: skillguard.sarif
